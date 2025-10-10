@@ -104,62 +104,26 @@ public class CoralManipulator extends SubsystemBase {
 
     //.115 for L1
 
-    // Commands for pivot control
-    public Command pivotL4() {
-        return this.runOnce(() -> {
-            this.setpoint = -.147;
-            this.pidPivot.setReference(setpoint, SparkMax.ControlType.kPosition);
-        });
+    /**
+     * 
+     * @param rotations
+     * represents the number of rotations to rotate the coral manipulator by, must be in 
+     * the range of [figure this out]
+     */
+    public void pivotManipulator(double rotations) {
+        setpoint = rotations;
+        this.pidPivot.setReference(setpoint, SparkMax.ControlType.kPosition);
     }
 
-    public Command pivotIntake() {
-        return this.runOnce(() -> {
-            this.setpoint = .079;
-            pidPivot.setReference(setpoint, SparkMax.ControlType.kPosition);
-        });
-    }
-
-    public Command pivotPlace() {
-        return this.runOnce(() -> {
-            this.setpoint = -.1;
-            this.pidPivot.setReference(setpoint, SparkMax.ControlType.kPosition);
-        });
-    }
-
-    public Command pivotDown() {
-        return this.runOnce(() -> {
-            this.setpoint = -0.5;
-            this.pidPivot.setReference(setpoint, SparkMax.ControlType.kPosition);
-        });
-    }
-
-    public Command stopCoral() {
-        return this.runOnce(() -> {
-            coralMotor1.set(0.0);
-            coralMotor2.set(0.0);
-        });
-    }
-
-    public Command intakeCoral() {
-        return this.runOnce(() -> {
-            coralMotor1.set(0.2);
-            coralMotor2.set(0.2);
-            probablyHasCoral = true;
-        });
-    }
-
-    public Command releaseCoral() {
-        return this.runOnce(() -> {
-            coralMotor1.set(-0.2);
-            coralMotor2.set(-0.2);
-            probablyHasCoral = false;
-        });
-    }
-
-    public Command homeDown() {
-        return this.runOnce(() -> {
-            this.pidPivot.setReference(-.5, SparkMax.ControlType.kPosition);
-        });
+    /**
+     * 
+     * @param speed
+     * Represents the desired duty cycle for the two coral manipulator motors, must be a value
+     * [-1,1]
+     */
+    public void setRollerSpeeds(double speed) {
+        coralMotor1.set(speed);
+        coralMotor2.set(speed);
     }
     
     public void periodic() {
@@ -183,6 +147,7 @@ public class CoralManipulator extends SubsystemBase {
         });
     }
 
+    //TODO refactor the following methods to be within one method
     public Command movePivotUp() {
         return this.runOnce(() -> {
             if (enableTeleop) {

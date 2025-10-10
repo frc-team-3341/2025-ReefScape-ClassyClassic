@@ -108,7 +108,6 @@ public class RobotContainer {
 
   private void createCoralManipulator() {
     coralManipulator = new CoralManipulator();
-
     mechJoystick.button(16).onTrue(coralManipulator.intakeCoral()).onFalse(coralManipulator.stopCoral());
     mechJoystick.button(18).onTrue(coralManipulator.releaseCoral()).onFalse(coralManipulator.stopCoral());
     //mechJoystick.button(6).toggleOnTrue(coralManipulator.movePivot());
@@ -151,7 +150,7 @@ public class RobotContainer {
     ParallelCommandGroup gotoL4 = new ParallelCommandGroup(elevator.setHeightL4(), coralManipulator.pivotL4());
     //Change this to use the home command if the homeEleavtorDown doesn't work
     ParallelCommandGroup gotoIntake = new ParallelCommandGroup(elevator.homeElevatorDown(), coralManipulator.pivotIntake());
-    mechJoystick.button(17).and(()->!coralManipulator.probablyHasCoral).onTrue(gotoIntake);
+    mechJoystick.button(17).onTrue(gotoIntake);
     mechJoystick.button(1 ).onTrue(gotoL4);
     mechJoystick.button(2 ).onTrue(gotoL3);
     mechJoystick.button(3 ).onTrue(gotoL2);

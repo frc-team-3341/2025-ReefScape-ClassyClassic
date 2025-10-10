@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import java.util.Optional;
 import java.util.function.DoubleSupplier;
 
 import com.revrobotics.RelativeEncoder;
@@ -18,6 +19,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -38,6 +40,7 @@ public class Elevator extends SubsystemBase {
   private DoubleSupplier rightJoyY;
   private boolean homedStartup = false;
   private boolean enableTeleop;
+  
   
   /** Creates a new Elevator. */
   public Elevator(DoubleSupplier rightJoyY) {
@@ -101,90 +104,7 @@ public class Elevator extends SubsystemBase {
         enableTeleop = !enableTeleop;
     });
 }
-  
 
-  //command to stop the motor
-  public Command stopElevator() {
-    return this.runOnce(() -> {
-        //System.out.println("stop the elevator");
-        motorE.set(0);
-        setpoint = 0;
-    });    
-  }
-
-  public Command setHeightL1(){
-    PIDController.toString();
-    return this.runOnce(()->{
-        if (this.homedStartup){
-          //L1 height is inches
-          //setting the height to be 10 inches 
-          setpoint = 10;
-          PIDController.setReference(setpoint * conversionFactor, SparkMax.ControlType.kMAXMotionPositionControl);
-          //System.out.println("Elevator L1");
-          //https://docs.revrobotics.com/revlib/spark/closed-loop/position-control-mode
-        }
-    });
-  }
-
-  public Command setHeightL2(){
-    return this.runOnce(()->{
-        if (this.homedStartup){ //2.5, 0.009
-          setpoint = 3.9;
-          PIDController.setReference(setpoint * conversionFactor, SparkMax.ControlType.kMAXMotionPositionControl);//, ClosedLoopSlot.kSlot0, 0.2);
-          //System.out.println("Elevator L2");
-          //https://docs.revrobotics.com/revlib/spark/closed-loop/position-control-mode
-        }
-    });
-  }
-
-  public Command setHeightL3(){
-    return this.runOnce(()->{
-        if (this.homedStartup){
-          setpoint = 12.6;
-          PIDController.setReference(setpoint * conversionFactor, SparkMax.ControlType.kMAXMotionPositionControl);//, ClosedLoopSlot.kSlot0, 0.009);
-          //System.out.println("Elevator L3");
-        }
-    });
-  }
-
-  public Command setHeightL4(){ //41˚
-    return this.runOnce(()->{
-      if (this.homedStartup){ 
-          setpoint = 26.5;
-          PIDController.setReference(setpoint * conversionFactor, SparkMax.ControlType.kMAXMotionPositionControl);//, ClosedLoopSlot.kSlot0, 0.271);
-          //System.out.println("Elevator setpoint L4");
-        //Sets the setpoint to 10 rotations. PIDController needs to be correctly configured
-        //https://docs.revrobotics.com/revlib/spark/closed-loop/position-control-mode
-      }
-    });
-  }
-
-  public Command moveElevator() {
-    return this.run(()->{
-        if (enableTeleop) {
-          //This joystick up is negative and down is positive so we need to invert it.
-          input = MathUtil.applyDeadband(this.rightJoyY.getAsDouble(), .1);
-          
-          setpoint += (input * -1) * .025;
-          MathUtil.clamp(setpoint, 0, 27);
-          PIDController.setReference(this.setpoint * conversionFactor, SparkMax.ControlType.kPosition);
-          //System.out.println(input);
-          //motorE.set(input * 0.3);
-        }    
-    });
-  }
-
-  //Move the elevator down at a constant speed for homing
-  public Command homeElevatorDown() {
-    return this.runOnce(() -> {
-      if (homedStartup) {
-        setpoint = 0;
-        PIDController.setReference(setpoint, SparkMax.ControlType.kMAXMotionPositionControl);
-      } else {
-        motorE.set(-0.3);
-      }
-    });
-  }
 
   public boolean isREVLimit() {
     return revLimit.isPressed();
@@ -200,6 +120,31 @@ public class Elevator extends SubsystemBase {
   
   public SparkMax getMotor() {
     return motorE;
+  }
+  
+  public void setHeight(double height) {
+
+    setpoint = height;
+
+    if (height == 0) {
+      if (homedStartup) {
+        PIDController.setReference(height, SparkMax.ControlType.kMAXMotionPositionControl);
+      } else {
+        motorE.set(-0.3);
+      }
+    }
+    PIDController.setReference(height * conversionFactor, SparkMax.ControlType.kMAXMotionPositionControl);
+  }
+
+  public void setManualHeight() {
+    if (enableTeleop) {
+      //This joystick up is negative and down is positive so we need to invert it.
+      input = MathUtil.applyDeadband(this.rightJoyY.getAsDouble(), .1);
+      
+      setpoint += (input * -1) * .025;
+      MathUtil.clamp(setpoint, 0, 27);
+      PIDController.setReference(this.setpoint * conversionFactor, SparkMax.ControlType.kPosition);
+    }   
   }
 
   @Override

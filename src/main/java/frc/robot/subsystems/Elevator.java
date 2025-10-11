@@ -98,7 +98,7 @@ public class Elevator extends SubsystemBase {
       homedStartup = true;
     }
   }
-
+  //TODO convert ts
   public Command toggleTeleop() {
     return this.runOnce(() -> {
         enableTeleop = !enableTeleop;
@@ -109,7 +109,7 @@ public class Elevator extends SubsystemBase {
   public boolean isREVLimit() {
     return revLimit.isPressed();
   }
-
+  //TODO convert ts as well
   public Command resetEncoder() {
     return this.runOnce(() -> {
       //System.out.println("Elevator reset encoder");

@@ -13,10 +13,12 @@ import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 import com.revrobotics.spark.config.SoftLimitConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 
 public class CoralManipulator extends SubsystemBase {
     double setpoint;
@@ -31,9 +33,7 @@ public class CoralManipulator extends SubsystemBase {
     AbsoluteEncoder absEncoder;
     SparkClosedLoopController pidPivot;
     boolean enableTeleop = false;
-
-    private final double forwardSoftLimit = 0.09;
-    private final double revSoftLimit = -0.23;
+    
 
     //The zero angle of the abs encoder in degrees. We need to apply all target angles with this offset
     //double zereodOffsetDegrees = Units.rotationsToDegrees(0.425);  // 0˚ reference point
@@ -89,8 +89,8 @@ public class CoralManipulator extends SubsystemBase {
         //double forwardSoftLimit = zereodOffsetDegrees + (10.0 / 360.0);    // +10 degrees up
         //double reverseSoftLimit = zereodOffsetDegrees + (-44.0 / 360.0);   // -44 degrees down
         
-        softLimitConfig.forwardSoftLimit(forwardSoftLimit);
-        softLimitConfig.reverseSoftLimit(revSoftLimit);
+        softLimitConfig.forwardSoftLimit(Constants.CoralManipulatorConstants.forwardSoftLimit);
+        softLimitConfig.reverseSoftLimit(Constants.CoralManipulatorConstants.revSoftLimit);
 
         // Apply configurations
         pivotConfig.apply(softLimitConfig);
@@ -102,14 +102,13 @@ public class CoralManipulator extends SubsystemBase {
         REVLimit = pivotMotor.getReverseLimitSwitch();
     }
 
-    //.115 for L1
-
     /**
      * 
      * @param rotations
      * represents the number of rotations to rotate the coral manipulator by, must be in 
-     * the range of [figure this out]
+     * the range of [-0.23, 0.09]
      */
+
     public void pivotManipulator(double rotations) {
         setpoint = rotations;
         this.pidPivot.setReference(setpoint, SparkMax.ControlType.kPosition);
@@ -118,12 +117,29 @@ public class CoralManipulator extends SubsystemBase {
     /**
      * 
      * @param speed
-     * Represents the desired duty cycle for the two coral manipulator motors, must be a value
-     * [-1,1]
+     * Represents the desired duty cycle for the two coral manipulator motors, must be 
+     * a value [-1,1]
      */
+
     public void setRollerSpeeds(double speed) {
         coralMotor1.set(speed);
         coralMotor2.set(speed);
+    }
+
+    //TODO convert ts plz
+    public Command toggleTeleop() {
+        return this.runOnce(() -> {
+            enableTeleop = !enableTeleop;
+        });
+    }
+    
+    public void manualPivot(double input) {
+        setpoint += input;
+
+        MathUtil.clamp(setpoint, Constants.CoralManipulatorConstants.forwardSoftLimit, 
+                        Constants.CoralManipulatorConstants.revSoftLimit);
+
+        pidPivot.setReference(setpoint, SparkMax.ControlType.kPosition);
     }
     
     public void periodic() {
@@ -141,30 +157,4 @@ public class CoralManipulator extends SubsystemBase {
         SmartDashboard.putBoolean("ProbablyHasCoral", probablyHasCoral);
     }
 
-    public Command toggleTeleop() {
-        return this.runOnce(() -> {
-            enableTeleop = !enableTeleop;
-        });
-    }
-
-    //TODO refactor the following methods to be within one method
-    public Command movePivotUp() {
-        return this.runOnce(() -> {
-            if (enableTeleop) {
-                setpoint += .02;
-                setpoint = Math.min(setpoint, forwardSoftLimit);
-                this.pidPivot.setReference(setpoint, SparkMax.ControlType.kPosition);
-            }
-        });
-    }
-
-    public Command movePivotDown() {
-        return this.runOnce(() -> {
-            if (enableTeleop) {
-                setpoint -= .02;
-                setpoint = Math.max(setpoint, revSoftLimit);
-                this.pidPivot.setReference(setpoint, SparkMax.ControlType.kPosition);
-            }
-        });
-    }
 }

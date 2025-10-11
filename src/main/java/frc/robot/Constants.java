@@ -177,6 +177,8 @@ public final class Constants {
 
     public static final class CoralManipulatorConstants{
         public static final int pivotGearRatio = 81;
+        private static final double forwardSoftLimit = 0.09;
+        private static final double revSoftLimit = -0.23;
     }
 
     public static final int PDH_can_id = 15;

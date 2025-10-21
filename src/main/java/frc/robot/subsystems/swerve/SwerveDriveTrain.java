@@ -62,7 +62,7 @@ import frc.util.lib.SwerveUtil;
  */
 public class SwerveDriveTrain extends SubsystemBase {
 
-   private boolean fieldRelative = false;
+   private boolean fieldRelative = true;
 
    // Create Navx
    private AHRS navx = new AHRS(NavXComType.kMXP_SPI);
@@ -110,8 +110,7 @@ public class SwerveDriveTrain extends SubsystemBase {
     * 
     * @author Aric Volman
     */
-   public SwerveDriveTrain(Pose2d startingPose, SwerveModuleIOSparkMax FL, SwerveModuleIOSparkMax FR, SwerveModuleIOSparkMax BL, SwerveModuleIOSparkMax BR,
-                           Vision vision, DoubleSupplier leftTriggerVal) {
+   public SwerveDriveTrain(Pose2d startingPose, SwerveModuleIOSparkMax FL, SwerveModuleIOSparkMax FR, SwerveModuleIOSparkMax BL, SwerveModuleIOSparkMax BR) {
       // Assign modules to their object
       this.moduleIO = new SwerveModuleIOSparkMax[] { FL, FR, BL, BR};
 
@@ -127,7 +126,7 @@ public class SwerveDriveTrain extends SubsystemBase {
             this.modulePositions, startingPose);
       this.field = new Field2d();
 
-      this.vision = vision;
+      // this.vision = vision;
       this.leftTriggerVal = leftTriggerVal;
 
       createAuto();
@@ -191,25 +190,25 @@ public class SwerveDriveTrain extends SubsystemBase {
       modulePositions = SwerveUtil.setModulePositions(moduleIO);
 
       // Correct pose estimate with vision measurements
-      if (enableVision && enablePoseEst) {
-         var bottomVisionEst = vision.getBottomCameraEstimatedGlobalPose();
-         bottomVisionEst.ifPresent( est -> {
-            // Change our trust in the measurement based on the tags we can see
-            var estStdDevs = vision.getBottomEstimationStdDevs();
-            if (estStdDevs != null) {
-               poseEstimator.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
-            }
-         });
+      // if (enableVision && enablePoseEst) {
+      //    var bottomVisionEst = vision.getBottomCameraEstimatedGlobalPose();
+      //    bottomVisionEst.ifPresent( est -> {
+      //       // Change our trust in the measurement based on the tags we can see
+      //       var estStdDevs = vision.getBottomEstimationStdDevs();
+      //       if (estStdDevs != null) {
+      //          poseEstimator.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
+      //       }
+      //    });
 
-         var topVisionEst = vision.getTopCameraEstimatedGlobalPose();
-         topVisionEst.ifPresent( est -> {
-            // Change our trust in the measurement based on the tags we can see
-            var estStdDevs = vision.getTopEstimationStdDevs();
-            if (estStdDevs != null) {
-               poseEstimator.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
-            }
-         });
-      } 
+      //    var topVisionEst = vision.getTopCameraEstimatedGlobalPose();
+      //    topVisionEst.ifPresent( est -> {
+      //       // Change our trust in the measurement based on the tags we can see
+      //       var estStdDevs = vision.getTopEstimationStdDevs();
+      //       if (estStdDevs != null) {
+      //          poseEstimator.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
+      //       }
+      //    });
+      // } 
       
       //Update pose using gyro and encoders.
       this.poseEstimator.update(this.getRotation(), this.modulePositions);
@@ -219,7 +218,7 @@ public class SwerveDriveTrain extends SubsystemBase {
       this.field.setRobotPose(this.getPoseFromEstimator());
 
       // Update telemetry of each swerve module
-      // SwerveUtil.updateTelemetry(moduleIO);
+      SwerveUtil.updateTelemetry(moduleIO);
 
       // Draw poses of robot's modules in SmartDashboard
       SwerveUtil.drawModulePoses(modulePositions, field, getPoseFromEstimator());
@@ -229,6 +228,9 @@ public class SwerveDriveTrain extends SubsystemBase {
       SmartDashboard.putNumber("Robot Rotation", getPoseFromEstimator().getRotation().getDegrees());
       SmartDashboard.putNumber("Angle", getHeading());
 
+      
+
+ 
       SmartDashboard.putNumber("offsetNavx", offsetNavx.getDegrees());
       //SmartDashboard.putNumber("pose.getRotation()", pose.getRotation().getDegrees());
       SmartDashboard.putNumber("navx.getRotation2d", navx.getRotation2d().getDegrees());
@@ -295,8 +297,9 @@ public class SwerveDriveTrain extends SubsystemBase {
     * @param isOpenLoop    Whether or not to control robot with closed or open loop
     *                      control
     */
-   public void drive(Translation2d translation, double rotation, boolean isOpenLoop) {
-
+    public void drive(Translation2d translation, double rotation, boolean isOpenLoop) {
+      //This question mark and colon are called ternary operators
+      //If field relative is true, then do the line with the ?, if false do :
       this.chassisSpeeds = fieldRelative
             ? ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation,
                   this.getRotation())
@@ -350,6 +353,12 @@ public class SwerveDriveTrain extends SubsystemBase {
          moduleIO[i].setDriveVoltage(driveVoltage);
          moduleIO[i].setTurnVoltage(turnVoltage);
       }
+   }
+
+   public Command driveVoltages(double driveVoltage) {
+      return this.run(() -> {
+         setModuleVoltages(driveVoltage, 0);
+      });
    }
 
    /**

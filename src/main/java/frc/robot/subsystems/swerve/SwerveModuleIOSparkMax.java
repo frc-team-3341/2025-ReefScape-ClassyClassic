@@ -148,7 +148,7 @@ public class SwerveModuleIOSparkMax {
         config.closedLoop.positionWrappingEnabled(true);
         config.closedLoop.positionWrappingInputRange(0, 1);
         config.idleMode(IdleMode.kBrake);
-        config.smartCurrentLimit(ModuleConstants.driveCurrentLimit);
+        config.smartCurrentLimit(ModuleConstants.turnCurrentLimit);
         config.closedLoop.pid(ModuleConstants.turnkP,
                                ModuleConstants.turnkI,
                                ModuleConstants.turnkP);
@@ -231,6 +231,8 @@ public class SwerveModuleIOSparkMax {
         // Show driving velocity
         SmartDashboard.putNumber("Drive Vel #" + num, driveEncoder.getVelocity());
         SmartDashboard.putNumber("Drive Pos #" + num, driveEncoder.getPosition());
+
+        SmartDashboard.putNumber("drive voltage #" + num, driveSparkMax.getBusVoltage());
 
         // NON-ESSENTIAL TELEMETRY
         if (Constants.enableSwerveMotorTelemetry && num == 1) {

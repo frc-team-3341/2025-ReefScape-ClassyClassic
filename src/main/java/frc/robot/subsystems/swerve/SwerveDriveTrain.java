@@ -36,6 +36,7 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -234,6 +235,8 @@ public class SwerveDriveTrain extends SubsystemBase {
       SmartDashboard.putNumber("offsetNavx", offsetNavx.getDegrees());
       //SmartDashboard.putNumber("pose.getRotation()", pose.getRotation().getDegrees());
       SmartDashboard.putNumber("navx.getRotation2d", navx.getRotation2d().getDegrees());
+
+      SmartDashboard.putNumber("Match Time", Timer.getMatchTime());
 
       targetStatePublisher.set(getSetpointStates());
       statePublisher.set(getActualStates());

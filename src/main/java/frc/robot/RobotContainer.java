@@ -152,7 +152,10 @@ public class RobotContainer {
     
     //Change this to use the home command if the homeEleavtorDown doesn't work
     ParallelCommandGroup gotoIntake = new ParallelCommandGroup(elevator.homeElevatorDown(), coralManipulator.pivotIntake());
-    mechJoystick.button(17).and(()->!coralManipulator.probablyHasCoral).onTrue(gotoIntake);
+
+    mechJoystick.button(7).whileTrue(elevator.softwareLock(false)).onFalse(elevator.softwareLock(true));
+    
+    mechJoystick.button(17).and(()->!elevator.elevatorLocked).onTrue(gotoIntake);
     mechJoystick.button(1 ).onTrue(gotoL4);
     mechJoystick.button(2 ).onTrue(gotoL3);
     mechJoystick.button(3 ).onTrue(gotoL2);
@@ -172,6 +175,7 @@ public class RobotContainer {
     //swerveDriveTrain.togglePoseEst();
     // vision.togglePoseEst();
   }
+
 
   public Command getAutonomousCommand() {
     return swerveDriveTrain.getAutonomousCommand();

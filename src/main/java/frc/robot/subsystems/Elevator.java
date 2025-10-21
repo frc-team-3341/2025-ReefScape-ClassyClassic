@@ -38,6 +38,8 @@ public class Elevator extends SubsystemBase {
   private DoubleSupplier rightJoyY;
   private boolean homedStartup = false;
   private boolean enableTeleop;
+
+  public boolean elevatorLocked;
   
   /** Creates a new Elevator. */
   public Elevator(DoubleSupplier rightJoyY) {
@@ -49,6 +51,8 @@ public class Elevator extends SubsystemBase {
     this.PIDController = motorE.getClosedLoopController();
     this.rel_encoder = motorE.getEncoder();
     enableTeleop = false;
+
+    elevatorLocked = false;
     
     config.closedLoop.pid(
     1.1, //p
@@ -196,6 +200,12 @@ public class Elevator extends SubsystemBase {
       homedStartup = true;
       rel_encoder.setPosition(0);
     });   
+  }
+
+  public Command softwareLock(boolean locked) {
+    return runOnce(() -> {
+      elevatorLocked = locked;
+    });
   }
   
   public SparkMax getMotor() {

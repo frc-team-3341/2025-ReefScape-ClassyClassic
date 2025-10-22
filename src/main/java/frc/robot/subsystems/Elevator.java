@@ -52,7 +52,7 @@ public class Elevator extends SubsystemBase {
     this.rel_encoder = motorE.getEncoder();
     enableTeleop = false;
 
-    elevatorLocked = false;
+    elevatorLocked = true;
     
     config.closedLoop.pid(
     1.1, //p

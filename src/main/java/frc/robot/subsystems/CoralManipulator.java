@@ -173,7 +173,7 @@ public class CoralManipulator extends SubsystemBase {
         // SmartDashboard.putNumber("pivot voltage", this.pivotMotor.getBusVoltage() * this.pivotMotor.getAppliedOutput());
     }
 
-    public Command toggleTeleop() {
+    public Command toggleTeleop() {  
         return this.runOnce(() -> {
             enableTeleop = !enableTeleop;
         });

@@ -180,10 +180,6 @@ public class SwerveModuleIOSparkMax {
         // This automagically updates at a 1 KHz rate
         this.drivePID.setReference(targetState.speedMetersPerSecond, SparkMax.ControlType.kVelocity);
 
-        //idk if ts will do anything helpful, but im calling this line of code so that the turn encoder stays "synced"
-        //with the value of the CANcoder
-        turnEncoder.setPosition(canCoder.getAbsolutePosition().getValueAsDouble() - Units.degreesToRotations(this.offset));
-
         // Set setpoint of WPILib PID controller for turning. Will handle the turning of the motor
         // as long as we give it a target angle.
         this.turnPID.setReference(targetState.angle.getRotations(), SparkMax.ControlType.kPosition);

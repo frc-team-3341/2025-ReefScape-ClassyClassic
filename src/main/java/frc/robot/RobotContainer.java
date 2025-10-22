@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.swerve.Haresh;
 import frc.robot.commands.swerve.SwerveTeleopCMD;
 import frc.robot.commands.targeting.Alignment;
 import frc.robot.subsystems.CoralManipulator;
@@ -42,6 +43,8 @@ public class RobotContainer {
   private DeepHang deepHang;
 
   private CoralManipulator coralManipulator;
+
+  private Haresh haresh;
 
   private Elevator elevator;
 
@@ -75,6 +78,8 @@ public class RobotContainer {
     Constants.SwerveModuleIOConfig.moduleFR,
     Constants.SwerveModuleIOConfig.moduleBL,
     Constants.SwerveModuleIOConfig.moduleBR);
+
+    haresh = new Haresh(swerveDriveTrain);
     
     //Create swerve commands here
     swerveTeleopCMD = new SwerveTeleopCMD(this.swerveDriveTrain, this.drivingXbox);
@@ -178,7 +183,7 @@ public class RobotContainer {
 
 
   public Command getAutonomousCommand() {
-    return swerveDriveTrain.getAutonomousCommand();
+    return haresh;
   }
 
   public void initCommandInTeleop() {

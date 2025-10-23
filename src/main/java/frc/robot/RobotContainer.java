@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.swerve.Haresh;
 import frc.robot.commands.swerve.SwerveTeleopCMD;
 import frc.robot.commands.targeting.Alignment;
 import frc.robot.subsystems.CoralManipulator;
@@ -44,7 +43,6 @@ public class RobotContainer {
 
   private CoralManipulator coralManipulator;
 
-  private Haresh haresh;
 
   private Elevator elevator;
 
@@ -79,7 +77,6 @@ public class RobotContainer {
     Constants.SwerveModuleIOConfig.moduleBL,
     Constants.SwerveModuleIOConfig.moduleBR);
 
-    haresh = new Haresh(swerveDriveTrain);
     
     //Create swerve commands here
     swerveTeleopCMD = new SwerveTeleopCMD(this.swerveDriveTrain, this.drivingXbox);
@@ -167,7 +164,7 @@ public class RobotContainer {
     mechJoystick.button(4 ).onTrue(gotoL1);
 
     //These are for auto. Triggers that happen during auto paths to execute commands
-    new EventTrigger("Go to L4").onTrue(new ParallelCommandGroup(elevator.setHeightL4(), coralManipulator.pivotL4()));
+    new EventTrigger("Go to L3").onTrue(new ParallelCommandGroup(elevator.setHeightL3(), coralManipulator.pivotL4()));
     new EventTrigger("Score Coral").onTrue(new SequentialCommandGroup(new WaitCommand(2), coralManipulator.releaseCoral(), new WaitCommand(1), coralManipulator.stopCoral()));
     new EventTrigger("Home Elevator and Coral").onTrue(gotoIntake);
     new EventTrigger("Get Coral").onTrue(new SequentialCommandGroup(coralManipulator.intakeCoral(), new WaitCommand(1), coralManipulator.stopCoral()));
@@ -183,7 +180,7 @@ public class RobotContainer {
 
 
   public Command getAutonomousCommand() {
-    return haresh;
+    return swerveDriveTrain.getAutonomousCommand();
   }
 
   public void initCommandInTeleop() {

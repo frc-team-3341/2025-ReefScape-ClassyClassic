@@ -70,12 +70,12 @@ public class RobotContainer {
   private void createSwerve() {
     //Swerve needs the vision make sure to create this first
     //Create swerveDriveTrain
-    // vision = new Vision(drivingXbox);
+    vision = new Vision(drivingXbox);
     swerveDriveTrain = new SwerveDriveTrain(startpose,
     Constants.SwerveModuleIOConfig.moduleFL,
     Constants.SwerveModuleIOConfig.moduleFR,
     Constants.SwerveModuleIOConfig.moduleBL,
-    Constants.SwerveModuleIOConfig.moduleBR);
+    Constants.SwerveModuleIOConfig.moduleBR, vision);
 
     
     //Create swerve commands here
@@ -170,12 +170,12 @@ public class RobotContainer {
     new EventTrigger("Get Coral").onTrue(new SequentialCommandGroup(coralManipulator.intakeCoral(), new WaitCommand(1), coralManipulator.stopCoral()));
   
     SmartDashboard.putData("Homing", new ParallelCommandGroup(elevator.homeElevatorDown(), coralManipulator.pivotDown()));
-    // SmartDashboard.putData("togglePoseEst", new SequentialCommandGroup(vision.togglePoseEst()));
+    SmartDashboard.putData("togglePoseEst", new SequentialCommandGroup(vision.togglePoseEst()));
   }
 
   public void togglePoseEst() {
-    //swerveDriveTrain.togglePoseEst();
-    // vision.togglePoseEst();
+    swerveDriveTrain.togglePoseEst();
+    vision.togglePoseEst();
   }
 
 

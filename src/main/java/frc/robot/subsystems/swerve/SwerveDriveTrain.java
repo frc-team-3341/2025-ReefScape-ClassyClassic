@@ -111,7 +111,7 @@ public class SwerveDriveTrain extends SubsystemBase {
     * 
     * @author Aric Volman
     */
-   public SwerveDriveTrain(Pose2d startingPose, SwerveModuleIOSparkMax FL, SwerveModuleIOSparkMax FR, SwerveModuleIOSparkMax BL, SwerveModuleIOSparkMax BR) {
+   public SwerveDriveTrain(Pose2d startingPose, SwerveModuleIOSparkMax FL, SwerveModuleIOSparkMax FR, SwerveModuleIOSparkMax BL, SwerveModuleIOSparkMax BR, Vision vision) {
       // Assign modules to their object
       this.moduleIO = new SwerveModuleIOSparkMax[] { FL, FR, BL, BR};
 
@@ -127,7 +127,7 @@ public class SwerveDriveTrain extends SubsystemBase {
             this.modulePositions, startingPose);
       this.field = new Field2d();
 
-      // this.vision = vision;
+      this.vision = vision;
       this.leftTriggerVal = leftTriggerVal;
 
       createAuto();
@@ -191,25 +191,25 @@ public class SwerveDriveTrain extends SubsystemBase {
       modulePositions = SwerveUtil.setModulePositions(moduleIO);
 
       // Correct pose estimate with vision measurements
-      // if (enableVision && enablePoseEst) {
-      //    var bottomVisionEst = vision.getBottomCameraEstimatedGlobalPose();
-      //    bottomVisionEst.ifPresent( est -> {
-      //       // Change our trust in the measurement based on the tags we can see
-      //       var estStdDevs = vision.getBottomEstimationStdDevs();
-      //       if (estStdDevs != null) {
-      //          poseEstimator.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
-      //       }
-      //    });
+      if (enableVision && enablePoseEst) {
+         var bottomVisionEst = vision.getBottomCameraEstimatedGlobalPose();
+         bottomVisionEst.ifPresent( est -> {
+            // Change our trust in the measurement based on the tags we can see
+            var estStdDevs = vision.getBottomEstimationStdDevs();
+            if (estStdDevs != null) {
+               poseEstimator.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
+            }
+         });
 
-      //    var topVisionEst = vision.getTopCameraEstimatedGlobalPose();
-      //    topVisionEst.ifPresent( est -> {
-      //       // Change our trust in the measurement based on the tags we can see
-      //       var estStdDevs = vision.getTopEstimationStdDevs();
-      //       if (estStdDevs != null) {
-      //          poseEstimator.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
-      //       }
-      //    });
-      // } 
+         var topVisionEst = vision.getTopCameraEstimatedGlobalPose();
+         topVisionEst.ifPresent( est -> {
+            // Change our trust in the measurement based on the tags we can see
+            var estStdDevs = vision.getTopEstimationStdDevs();
+            if (estStdDevs != null) {
+               poseEstimator.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
+            }
+         });
+      } 
       
       //Update pose using gyro and encoders.
       this.poseEstimator.update(this.getRotation(), this.modulePositions);

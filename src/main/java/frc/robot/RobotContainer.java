@@ -184,7 +184,7 @@ public class RobotContainer {
   }
 
   public void initCommandInTeleop() {
-    // elevator.homeElevatorDown();
+    elevator.homeElevatorDown();
     //swerveDriveTrain.setDefaultCommand(swerveTeleopCMD);
   }
 }

@@ -465,7 +465,7 @@ public class SwerveDriveTrain extends SubsystemBase {
    public void resetPose(Pose2d pose) {
       System.out.println("resetPose");
       poseEstimator.resetPosition(pose.getRotation(), modulePositions, pose);
-      offsetNavx = pose.getRotation().minus(navx.getRotation2d());
+      // offsetNavx = pose.getRotation().minus(navx.getRotation2d());
 
       if (Constants.isSim) {
          mapleSimDrive.setSimulationWorldPose(pose);

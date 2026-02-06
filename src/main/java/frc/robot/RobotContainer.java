@@ -1,4 +1,5 @@
 package frc.robot;
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.events.EventTrigger;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -28,7 +29,7 @@ public class RobotContainer {
 
   // Defines starting pose of robot
   // TODO - Please remove this in future if developing for AprilTags
-  Pose2d startpose = new Pose2d(new Translation2d(8.7, 4.0), new Rotation2d());
+  Pose2d startpose = new Pose2d(new Translation2d(0, 0), new Rotation2d());
   // add start pose if needed
   // ---------------------- END OF CONFIG SECTION --------------------------
 
@@ -57,19 +58,19 @@ public class RobotContainer {
     DriverStation.startDataLog(DataLogManager.getLog());
 
     createSwerve();
-    createDeepHang();
-    createCoralManipulator();
-    createElevator();
+    // createDeepHang();
+    // createCoralManipulator();
+    // createElevator();
 
     //Call this last since this creates the parallel command groups
     //and requires elevator and coral manipulator
-    BALLASDHAKHSDHASDKJAS();
+    // BALLASDHAKHSDHASDKJAS();
   }
 
   private void createSwerve() {
     //Swerve needs the vision make sure to create this first
     //Create swerveDriveTrain
-    vision = new Vision(drivingXbox);
+    // vision = new Vision(drivingXbox);
     swerveDriveTrain = new SwerveDriveTrain(startpose,
     Constants.SwerveModuleIOConfig.moduleFL,
     Constants.SwerveModuleIOConfig.moduleFR,
@@ -79,7 +80,6 @@ public class RobotContainer {
     
     //Create swerve commands here
     swerveTeleopCMD = new SwerveTeleopCMD(this.swerveDriveTrain, this.drivingXbox);
-
 
     //Set default swerve command to the basic drive command, not field orientated
     this.swerveDriveTrain.setDefaultCommand(swerveTeleopCMD);
@@ -91,11 +91,18 @@ public class RobotContainer {
     drivingXbox.leftTrigger(0.02).whileTrue(swerveDriveTrain.driveForward());
 
     // longAlignment = new LongitudinalAlignment(swerveDriveTrain, vision);
-    align = new Alignment(swerveDriveTrain, vision);
-    drivingXbox.a().toggleOnTrue(align);
-    drivingXbox.leftBumper().onTrue(vision.setpointLeftHorizontal());
-    drivingXbox.rightBumper().onTrue(vision.setpointRightHorizontal());
-    drivingXbox.b().onTrue(vision.setpointZeroHorizontal());
+    // align = new Alignment(swerveDriveTrain, vision);
+    //drivingXbox.a().toggleOnTrue(align);
+    // drivingXbox.leftBumper().onTrue(vision.setpointLeftHorizontal());
+    // drivingXbox.rightBumper().onTrue(vision.setpointRightHorizontal());
+    // drivingXbox.b().onTrue(vision.setpointZeroHorizontal());
+    drivingXbox.a().onTrue(
+        AutoBuilder.pathfindToPose(
+            new Pose2d(0, 1.0, Rotation2d.fromDegrees(0)),
+            swerveDriveTrain.getPathFindConstraints(), // constraints configurable in DriveSubsystem.java
+            0.0  // end velocity
+        )
+    );
   }
 
   private void createDeepHang() {
@@ -177,7 +184,7 @@ public class RobotContainer {
   }
 
   public void initCommandInTeleop() {
-    elevator.homeElevatorDown();
-    //swerveDriveTrain.setDefaultCommand(swerveTeleopCMD);
+    // elevator.homeElevatorDown();
+    swerveDriveTrain.setDefaultCommand(swerveTeleopCMD);
   }
 }

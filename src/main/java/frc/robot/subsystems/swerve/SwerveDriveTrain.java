@@ -18,6 +18,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
@@ -95,7 +96,7 @@ public class SwerveDriveTrain extends SubsystemBase {
    private final StructArrayPublisher<SwerveModuleState> absStatePublisher;
    private final StructPublisher<ChassisSpeeds> chassisSpeedsPublisher;
    private final StructPublisher<Pose2d> poseEstimatorPublisher;
-   private Vision vision;
+   // private Vision vision;
 
    private SwerveDriveSimulation mapleSimDrive;
 
@@ -127,7 +128,7 @@ public class SwerveDriveTrain extends SubsystemBase {
             this.modulePositions, startingPose);
       this.field = new Field2d();
 
-      this.vision = vision;
+      // this.vision = vision;
       this.leftTriggerVal = leftTriggerVal;
 
       createAuto();
@@ -184,32 +185,44 @@ public class SwerveDriveTrain extends SubsystemBase {
       return autoChooser.getSelected();
    }
 
+   public PathConstraints getPathFindConstraints(){
+    // Create path constraints
+    PathConstraints constraints = new PathConstraints(
+        0.3,   // maxVelocityMps
+        0.6,   // maxAccelerationMpsSq
+        Units.degreesToRadians(540.0),
+        Units.degreesToRadians(540.0)
+    );
+    
+    return constraints;
+  }
+  
    public void periodic() {
       SmartDashboard.putBoolean("Field Relative", this.fieldRelative);
 
       // Update module positions
       modulePositions = SwerveUtil.setModulePositions(moduleIO);
 
-      // Correct pose estimate with vision measurements
-      if (enableVision && enablePoseEst) {
-         var bottomVisionEst = vision.getBottomCameraEstimatedGlobalPose();
-         bottomVisionEst.ifPresent( est -> {
-            // Change our trust in the measurement based on the tags we can see
-            var estStdDevs = vision.getBottomEstimationStdDevs();
-            if (estStdDevs != null) {
-               poseEstimator.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
-            }
-         });
+      // // Correct pose estimate with vision measurements
+      // if (enableVision && enablePoseEst) {
+      //    var bottomVisionEst = vision.getBottomCameraEstimatedGlobalPose();
+      //    bottomVisionEst.ifPresent( est -> {
+      //       // Change our trust in the measurement based on the tags we can see
+      //       var estStdDevs = vision.getBottomEstimationStdDevs();
+      //       if (estStdDevs != null) {
+      //          poseEstimator.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
+      //       }
+      //    });
 
-         var topVisionEst = vision.getTopCameraEstimatedGlobalPose();
-         topVisionEst.ifPresent( est -> {
-            // Change our trust in the measurement based on the tags we can see
-            var estStdDevs = vision.getTopEstimationStdDevs();
-            if (estStdDevs != null) {
-               poseEstimator.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
-            }
-         });
-      } 
+      //    var topVisionEst = vision.getTopCameraEstimatedGlobalPose();
+      //    topVisionEst.ifPresent( est -> {
+      //       // Change our trust in the measurement based on the tags we can see
+      //       var estStdDevs = vision.getTopEstimationStdDevs();
+      //       if (estStdDevs != null) {
+      //          poseEstimator.addVisionMeasurement(est.estimatedPose.toPose2d(), est.timestampSeconds, estStdDevs);
+      //       }
+      //    });
+      // } 
       
       //Update pose using gyro and encoders.
       this.poseEstimator.update(this.getRotation(), this.modulePositions);

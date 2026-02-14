@@ -1,14 +1,19 @@
 package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.events.EventTrigger;
+import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -104,7 +109,7 @@ public class RobotContainer {
     drivingXbox.start().onTrue(
         Commands.runOnce(() -> {
             System.out.println("ZEROING HEADING");
-        }).andThen(swerve.zeroHeading())
+        }).andThen(swerveDriveTrain.resetHeadingCommand())
     );
     
     // Emergency Cancel all commands - press B
@@ -112,7 +117,7 @@ public class RobotContainer {
         Commands.runOnce(() -> {
             System.out.println("EMERGENCY CANCEL");
             CommandScheduler.getInstance().cancelAll();
-            swerve.stopMotors();
+            swerveDriveTrain.stopMotors();
         })
     );
     
@@ -120,7 +125,7 @@ public class RobotContainer {
     drivingXbox.a().onTrue(
         Commands.sequence(
             Commands.runOnce(() -> {
-                Pose2d currentPose = swerve.getPose();
+                Pose2d currentPose = swerveDriveTrain.getPoseFromEstimator();
                 System.out.println("===== PATHFINDING STARTED =====");
                 System.out.println("Current Pose: " + currentPose);
                 
@@ -130,8 +135,8 @@ public class RobotContainer {
                 if (!isValidX || !isValidY) {
                     System.out.println("WARNING: Position is OFF FIELD!");
                     System.out.println("Auto-resetting to (1.0, 1.0, 0)");
-                    swerve.resetOdometry(new Pose2d(1.0, 1.0, new Rotation2d(0)));
-                    System.out.println("New pose: " + swerve.getPose());
+                    swerveDriveTrain.resetPose(new Pose2d(1.0, 1.0, new Rotation2d(0)));
+                    System.out.println("New pose: " + swerveDriveTrain.getPoseFromEstimator());
                 } else {
                     System.out.println("Position is valid - proceeding");
                 }
@@ -140,7 +145,7 @@ public class RobotContainer {
             Commands.waitSeconds(0.1),
             
             Commands.runOnce(() -> {
-                Pose2d current = swerve.getPose();
+                Pose2d current = swerveDriveTrain.getPoseFromEstimator();
                 Pose2d target = new Pose2d(0.5, 0.5, Rotation2d.fromDegrees(0));
                 double distance = current.getTranslation().getDistance(target.getTranslation());
                 
@@ -165,7 +170,7 @@ public class RobotContainer {
                 System.out.println(">>> PATHFINDING COMMAND STARTING <<<");
             })
             .andThen(() -> {
-                Pose2d finalPose = swerve.getPose();
+                Pose2d finalPose = swerveDriveTrain.getPoseFromEstimator();
                 System.out.println(">>> PATHFINDING COMPLETED SUCCESSFULLY <<<");
                 System.out.println("Final Position: " + String.format("(%.2f, %.2f, %.2f)", 
                     finalPose.getX(), finalPose.getY(), finalPose.getRotation().getDegrees()));
@@ -176,7 +181,7 @@ public class RobotContainer {
                 } else {
                     System.out.println("PATHFINDING ENDED NORMALLY");
                 }
-                swerve.stopMotors();
+                swerveDriveTrain.stopMotors();
             })
             .withTimeout(15.0)  // 15 second timeout
         )
@@ -188,14 +193,14 @@ public class RobotContainer {
             Commands.runOnce(() -> {
                 System.out.println("DRIVE FORWARD TEST");
                 System.out.println("Driving forward at 0.5 m/s for 2 seconds");
-                System.out.println("Starting pose: " + swerve.getPose());
+                System.out.println("Starting pose: " + swerveDriveTrain.getPoseFromEstimator());
             }),
-            Commands.run(() -> swerve.drive(0.5, 0, 0, false), swerve)
+            Commands.run(() -> swerveDriveTrain.drive(new Translation2d(0.5, 0), 0, false), swerveDriveTrain)
                 .withTimeout(2.0),
             Commands.runOnce(() -> {
-                swerve.stopMotors();
+                swerveDriveTrain.stopMotors();
                 System.out.println("Drive test complete");
-                System.out.println("Final pose: " + swerve.getPose());
+                System.out.println("Final pose: " + swerveDriveTrain.getPoseFromEstimator());
             })
         )
     );

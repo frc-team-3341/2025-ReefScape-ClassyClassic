@@ -188,7 +188,7 @@ public class SwerveDriveTrain extends SubsystemBase {
    public PathConstraints getPathFindConstraints(){
     // Create path constraints
     PathConstraints constraints = new PathConstraints(
-        0.3,   // maxVelocityMps
+        0.5,   // maxVelocityMps
         0.6,   // maxAccelerationMpsSq
         Units.degreesToRadians(540.0),
         Units.degreesToRadians(540.0)
@@ -225,14 +225,14 @@ public class SwerveDriveTrain extends SubsystemBase {
       // } 
       
       //Update pose using gyro and encoders.
-      this.poseEstimator.update(this.getRotation(), this.modulePositions);
+      // this.poseEstimator.update(this.getRotation(), this.modulePositions);
       
-      poseEstimatorPublisher.set(poseEstimator.getEstimatedPosition());
+      // poseEstimatorPublisher.set(poseEstimator.getEstimatedPosition());
 
       this.field.setRobotPose(this.getPoseFromEstimator());
 
       // Update telemetry of each swerve module
-      // SwerveUtil.updateTelemetry(moduleIO);
+      SwerveUtil.updateTelemetry(moduleIO);
 
       // Draw poses of robot's modules in SmartDashboard
       SwerveUtil.drawModulePoses(modulePositions, field, getPoseFromEstimator());
@@ -246,10 +246,10 @@ public class SwerveDriveTrain extends SubsystemBase {
       //SmartDashboard.putNumber("pose.getRotation()", pose.getRotation().getDegrees());
       SmartDashboard.putNumber("navx.getRotation2d", navx.getRotation2d().getDegrees());
 
-      targetStatePublisher.set(getSetpointStates());
-      statePublisher.set(getActualStates());
-      absStatePublisher.set(getCanCoderStates());
-      chassisSpeedsPublisher.set(this.chassisSpeeds);
+      // targetStatePublisher.set(getSetpointStates());
+      // statePublisher.set(getActualStates());
+      // absStatePublisher.set(getCanCoderStates());
+      // chassisSpeedsPublisher.set(this.chassisSpeeds);
 
       /**
        * SmartDashboard.putData("Swerve Drive", new Sendable() {

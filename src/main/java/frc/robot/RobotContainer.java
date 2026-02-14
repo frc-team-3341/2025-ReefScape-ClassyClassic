@@ -58,6 +58,8 @@ public class RobotContainer {
     DriverStation.startDataLog(DataLogManager.getLog());
 
     createSwerve();
+    PathfindingCommand.warmupCommand().schedule();
+
     // createDeepHang();
     // createCoralManipulator();
     // createElevator();
@@ -96,11 +98,105 @@ public class RobotContainer {
     // drivingXbox.leftBumper().onTrue(vision.setpointLeftHorizontal());
     // drivingXbox.rightBumper().onTrue(vision.setpointRightHorizontal());
     // drivingXbox.b().onTrue(vision.setpointZeroHorizontal());
+    // swerveDriveTrain.resetPose(startpose);
+
+    // Zero Heading
+    drivingXbox.start().onTrue(
+        Commands.runOnce(() -> {
+            System.out.println("ZEROING HEADING");
+        }).andThen(swerve.zeroHeading())
+    );
+    
+    // Emergency Cancel all commands - press B
+    drivingXbox.b().onTrue(
+        Commands.runOnce(() -> {
+            System.out.println("EMERGENCY CANCEL");
+            CommandScheduler.getInstance().cancelAll();
+            swerve.stopMotors();
+        })
+    );
+    
+    // Pathfinding test - press A
     drivingXbox.a().onTrue(
-        AutoBuilder.pathfindToPose(
-            new Pose2d(0, 1.0, Rotation2d.fromDegrees(0)),
-            swerveDriveTrain.getPathFindConstraints(), // constraints configurable in DriveSubsystem.java
-            0.0  // end velocity
+        Commands.sequence(
+            Commands.runOnce(() -> {
+                Pose2d currentPose = swerve.getPose();
+                System.out.println("===== PATHFINDING STARTED =====");
+                System.out.println("Current Pose: " + currentPose);
+                
+                boolean isValidX = currentPose.getX() >= 0 && currentPose.getX() <= 16.54;
+                boolean isValidY = currentPose.getY() >= 0 && currentPose.getY() <= 8.07;
+                
+                if (!isValidX || !isValidY) {
+                    System.out.println("WARNING: Position is OFF FIELD!");
+                    System.out.println("Auto-resetting to (1.0, 1.0, 0)");
+                    swerve.resetOdometry(new Pose2d(1.0, 1.0, new Rotation2d(0)));
+                    System.out.println("New pose: " + swerve.getPose());
+                } else {
+                    System.out.println("Position is valid - proceeding");
+                }
+            }),
+            
+            Commands.waitSeconds(0.1),
+            
+            Commands.runOnce(() -> {
+                Pose2d current = swerve.getPose();
+                Pose2d target = new Pose2d(0.5, 0.5, Rotation2d.fromDegrees(0));
+                double distance = current.getTranslation().getDistance(target.getTranslation());
+                
+                System.out.println("Current Position: " + String.format("(%.2f, %.2f, %.2f )", 
+                    current.getX(), current.getY(), current.getRotation().getDegrees()));
+                System.out.println("Target Position:  (0.5, 0.5, 0.00 )");
+                System.out.println("Distance to target: " + String.format("%.2f meters", distance));
+                System.out.println("Creating pathfinding command...");
+            }),
+            
+            AutoBuilder.pathfindToPose(
+                new Pose2d(0.5, 0.5, Rotation2d.fromDegrees(0)),
+                new PathConstraints(
+                    0.7,  // max velocity
+                    0.5,  // max acceleration
+                    Units.degreesToRadians(360.0),
+                    Units.degreesToRadians(360.0)
+                ),
+                0.0  // end velocity
+            )
+            .beforeStarting(() -> {
+                System.out.println(">>> PATHFINDING COMMAND STARTING <<<");
+            })
+            .andThen(() -> {
+                Pose2d finalPose = swerve.getPose();
+                System.out.println(">>> PATHFINDING COMPLETED SUCCESSFULLY <<<");
+                System.out.println("Final Position: " + String.format("(%.2f, %.2f, %.2f)", 
+                    finalPose.getX(), finalPose.getY(), finalPose.getRotation().getDegrees()));
+            })
+            .finallyDo((interrupted) -> {
+                if (interrupted) {
+                    System.out.println("PATHFINDING INTERRUPTED");
+                } else {
+                    System.out.println("PATHFINDING ENDED NORMALLY");
+                }
+                swerve.stopMotors();
+            })
+            .withTimeout(15.0)  // 15 second timeout
+        )
+    );
+
+    // Drive Forward - press X
+    drivingXbox.x().onTrue(
+        Commands.sequence(
+            Commands.runOnce(() -> {
+                System.out.println("DRIVE FORWARD TEST");
+                System.out.println("Driving forward at 0.5 m/s for 2 seconds");
+                System.out.println("Starting pose: " + swerve.getPose());
+            }),
+            Commands.run(() -> swerve.drive(0.5, 0, 0, false), swerve)
+                .withTimeout(2.0),
+            Commands.runOnce(() -> {
+                swerve.stopMotors();
+                System.out.println("Drive test complete");
+                System.out.println("Final pose: " + swerve.getPose());
+            })
         )
     );
   }

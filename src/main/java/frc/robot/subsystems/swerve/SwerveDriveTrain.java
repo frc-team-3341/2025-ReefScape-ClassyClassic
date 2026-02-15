@@ -42,6 +42,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Robot;
@@ -458,6 +459,14 @@ public class SwerveDriveTrain extends SubsystemBase {
     */
    public Pose2d getPoseFromEstimator() {
       return poseEstimator.getEstimatedPosition();
+   }
+
+   public Command resetPoseCMDZero(Pose2d pose){
+      return Commands.runOnce(() -> {
+         System.out.println("resetPose");
+         poseEstimator.resetPosition(pose.getRotation(), modulePositions, pose);
+         offsetNavx = pose.getRotation().minus(navx.getRotation2d());
+      });
    }
 
    /**

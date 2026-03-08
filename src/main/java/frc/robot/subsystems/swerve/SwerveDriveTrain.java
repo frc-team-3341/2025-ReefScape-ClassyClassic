@@ -101,6 +101,7 @@ public class SwerveDriveTrain extends SubsystemBase {
 
    private SwerveDriveSimulation mapleSimDrive;
 
+   private final StructPublisher<Pose2d> posePublisher;
    private boolean enableVision = true;
    private boolean enablePoseEst = true;
 
@@ -128,7 +129,9 @@ public class SwerveDriveTrain extends SubsystemBase {
       this.poseEstimator = new SwerveDrivePoseEstimator(this.kinematics, Rotation2d.fromDegrees(getGyroYaw()),
             this.modulePositions, startingPose);
       this.field = new Field2d();
-
+      ;
+      posePublisher = NetworkTableInstance.getDefault()
+        .getStructTopic("/PoseEstimator/OdometryPose", Pose2d.struct).publish();
       // this.vision = vision;
       this.leftTriggerVal = leftTriggerVal;
 
@@ -197,12 +200,26 @@ public class SwerveDriveTrain extends SubsystemBase {
     
     return constraints;
   }
+
+  public Command pathfindingCommand() {
+   return AutoBuilder.pathfindToPose(
+            new Pose2d(.5, 0.5, Rotation2d.fromDegrees(0)),
+            new PathConstraints(
+                2.5,  // max velocity
+               3.0,  // max acceleration
+                Units.degreesToRadians(90),
+                Units.degreesToRadians(90)
+            ),
+            0.0  // end velocity
+        );
+  }
   
    public void periodic() {
       SmartDashboard.putBoolean("Field Relative", this.fieldRelative);
 
       // Update module positions
       modulePositions = SwerveUtil.setModulePositions(moduleIO);
+      
 
       // // Correct pose estimate with vision measurements
       // if (enableVision && enablePoseEst) {
@@ -226,9 +243,9 @@ public class SwerveDriveTrain extends SubsystemBase {
       // } 
       
       //Update pose using gyro and encoders.
-      // this.poseEstimator.update(this.getRotation(), this.modulePositions);
+      this.poseEstimator.update(this.getRotation(), this.modulePositions);
       
-      // poseEstimatorPublisher.set(poseEstimator.getEstimatedPosition());
+      poseEstimatorPublisher.set(poseEstimator.getEstimatedPosition());
 
       this.field.setRobotPose(this.getPoseFromEstimator());
 
@@ -424,7 +441,7 @@ public class SwerveDriveTrain extends SubsystemBase {
 
    // Returns the current yaw value (in degrees, from -180 to 180)
    public double getGyroYaw() {
-      return navx.getYaw();
+      return -navx.getYaw();
    }
 
    /** 
@@ -460,6 +477,35 @@ public class SwerveDriveTrain extends SubsystemBase {
    public Pose2d getPoseFromEstimator() {
       return poseEstimator.getEstimatedPosition();
    }
+
+   public Command resetOdometry() {
+      return Commands.runOnce(() -> {
+         this.resetOdometry(new Pose2d(0, 0, new Rotation2d(0)));
+      });
+   }
+
+   public void resetOdometry(Pose2d pose) {
+    poseEstimator.resetPosition(
+        Rotation2d.fromDegrees(this.getGyroYaw()),
+        new SwerveModulePosition[] {
+            moduleIO[0].getPosition(),
+            moduleIO[1].getPosition(),
+            moduleIO[2].getPosition(),
+            moduleIO[3].getPosition()
+        },
+        pose);
+    
+    poseEstimator.resetPosition(
+        Rotation2d.fromDegrees(this.getGyroYaw()),
+        new SwerveModulePosition[] {
+            moduleIO[0].getPosition(),
+            moduleIO[1].getPosition(),
+            moduleIO[2].getPosition(),
+            moduleIO[3].getPosition()
+        },
+        pose);
+
+  }
 
    public Command resetPoseCMDZero(Pose2d pose){
       return Commands.runOnce(() -> {

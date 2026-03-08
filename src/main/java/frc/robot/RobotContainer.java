@@ -1,4 +1,6 @@
 package frc.robot;
+import java.util.Set;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.events.EventTrigger;
@@ -14,6 +16,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -93,7 +96,6 @@ public class RobotContainer {
 
     //This requires the swerve subsystem make sure to create that first before creating this
     //7drivingXbox.x().onTrue(this.swerveDriveTrain.toggleFieldCentric());
-    drivingXbox.y().onTrue(this.swerveDriveTrain.resetHeadingCommand());
 
     drivingXbox.leftTrigger(0.02).whileTrue(swerveDriveTrain.driveForward());
 
@@ -118,25 +120,16 @@ public class RobotContainer {
             System.out.println("EMERGENCY CANCEL");
             CommandScheduler.getInstance().cancelAll();
             swerveDriveTrain.stopMotors();
-        })
+        }) 
     );
 
-
+    drivingXbox.y().onTrue(
+        Commands.print("hi").andThen(
+        swerveDriveTrain.resetOdometry())
+    );
   
     drivingXbox.a().onTrue(
-      new SequentialCommandGroup(
-        // swerveDriveTrain.resetPoseCMDZero(new Pose2d()),
-        AutoBuilder.pathfindToPose(
-            new Pose2d(.5, 0.5, Rotation2d.fromDegrees(0)),
-            new PathConstraints(
-                0.1,  // max velocity
-                0.1,  // max acceleration
-                Units.degreesToRadians(30.0),
-                Units.degreesToRadians(30.0)
-            ),
-            0.0  // end velocity
-        )
-      ) 
+      new DeferredCommand(() -> swerveDriveTrain.pathfindingCommand(), Set.of())
     );
     
     // Pathfinding test - press A

@@ -43,6 +43,7 @@ public class RobotContainer {
 
   private CoralManipulator coralManipulator;
 
+
   private Elevator elevator;
 
   private Alignment align;
@@ -74,8 +75,8 @@ public class RobotContainer {
     Constants.SwerveModuleIOConfig.moduleFL,
     Constants.SwerveModuleIOConfig.moduleFR,
     Constants.SwerveModuleIOConfig.moduleBL,
-    Constants.SwerveModuleIOConfig.moduleBR,
-    vision, () -> {return drivingXbox.getLeftTriggerAxis();});
+    Constants.SwerveModuleIOConfig.moduleBR, vision);
+
     
     //Create swerve commands here
     swerveTeleopCMD = new SwerveTeleopCMD(this.swerveDriveTrain, this.drivingXbox);
@@ -85,17 +86,18 @@ public class RobotContainer {
     this.swerveDriveTrain.setDefaultCommand(swerveTeleopCMD);
 
     //This requires the swerve subsystem make sure to create that first before creating this
-    //7drivingXbox.x().onTrue(this.swerveDriveTrain.toggleFieldCentric());
+    // drivingXbox.x().onTrue(this.swerveDriveTrain.toggleFieldCentric());
     drivingXbox.y().onTrue(this.swerveDriveTrain.resetHeadingCommand());
 
-    drivingXbox.leftTrigger(0.02).whileTrue(swerveDriveTrain.driveForward());
+
+    // drivingXbox.leftTrigger(0.02).whileTrue(swerveDriveTrain.driveForward());
 
     // longAlignment = new LongitudinalAlignment(swerveDriveTrain, vision);
-    align = new Alignment(swerveDriveTrain, vision);
-    drivingXbox.a().toggleOnTrue(align);
-    drivingXbox.leftBumper().onTrue(vision.setpointLeftHorizontal());
-    drivingXbox.rightBumper().onTrue(vision.setpointRightHorizontal());
-    drivingXbox.b().onTrue(vision.setpointZeroHorizontal());
+    // align = new Alignment(swerveDriveTrain, vision);
+    // drivingXbox.a().toggleOnTrue(align);
+    // drivingXbox.leftBumper().onTrue(vision.setpointLeftHorizontal());
+    // drivingXbox.rightBumper().onTrue(vision.setpointRightHorizontal());
+    // drivingXbox.b().onTrue(vision.setpointZeroHorizontal());
   }
 
   private void createDeepHang() {
@@ -149,9 +151,13 @@ public class RobotContainer {
     ParallelCommandGroup gotoL2 = new ParallelCommandGroup(elevator.setHeightL2(), coralManipulator.pivotPlace());
     ParallelCommandGroup gotoL3 = new ParallelCommandGroup(elevator.setHeightL3(), coralManipulator.pivotPlace());
     ParallelCommandGroup gotoL4 = new ParallelCommandGroup(elevator.setHeightL4(), coralManipulator.pivotL4());
+    
     //Change this to use the home command if the homeEleavtorDown doesn't work
     ParallelCommandGroup gotoIntake = new ParallelCommandGroup(elevator.homeElevatorDown(), coralManipulator.pivotIntake());
-    mechJoystick.button(17).and(()->!coralManipulator.probablyHasCoral).onTrue(gotoIntake);
+
+    mechJoystick.button(7).whileTrue(elevator.softwareLock(false)).onFalse(elevator.softwareLock(true));
+    
+    mechJoystick.button(17).and(()->!elevator.elevatorLocked).onTrue(gotoIntake);
     mechJoystick.button(1 ).onTrue(gotoL4);
     mechJoystick.button(2 ).onTrue(gotoL3);
     mechJoystick.button(3 ).onTrue(gotoL2);
@@ -168,9 +174,10 @@ public class RobotContainer {
   }
 
   public void togglePoseEst() {
-    //swerveDriveTrain.togglePoseEst();
+    swerveDriveTrain.togglePoseEst();
     vision.togglePoseEst();
   }
+
 
   public Command getAutonomousCommand() {
     return swerveDriveTrain.getAutonomousCommand();

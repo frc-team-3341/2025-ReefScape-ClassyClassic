@@ -38,6 +38,8 @@ public class Elevator extends SubsystemBase {
   private DoubleSupplier rightJoyY;
   private boolean homedStartup = false;
   private boolean enableTeleop;
+
+  public boolean elevatorLocked;
   
   /** Creates a new Elevator. */
   public Elevator(DoubleSupplier rightJoyY) {
@@ -49,16 +51,18 @@ public class Elevator extends SubsystemBase {
     this.PIDController = motorE.getClosedLoopController();
     this.rel_encoder = motorE.getEncoder();
     enableTeleop = false;
+
+    elevatorLocked = true;
     
     config.closedLoop.pid(
-    .6, //p
+    1.1, //p
     0.006, //i
     0.005 //d
     ); 
 
     config.closedLoop.maxMotion
-       .maxVelocity(5000) //in rpm
-       .maxAcceleration(4400) // in rpm/s
+       .maxVelocity(5600) //in rpm
+       .maxAcceleration(5200) // in rpm/s
        .allowedClosedLoopError(1);
 
     config.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
@@ -197,6 +201,12 @@ public class Elevator extends SubsystemBase {
       rel_encoder.setPosition(0);
     });   
   }
+
+  public Command softwareLock(boolean locked) {
+    return runOnce(() -> {
+      elevatorLocked = locked;
+    });
+  }
   
   public SparkMax getMotor() {
     return motorE;
@@ -204,7 +214,7 @@ public class Elevator extends SubsystemBase {
 
   @Override
   public void periodic(){
-    // SmartDashboard.putNumber("Elevator setpoint", setpoint);
+    SmartDashboard.putNumber("Elevator setpoint", setpoint);
     currentPos = rel_encoder.getPosition();     
     SmartDashboard.putNumber("Elevator pos",currentPos / conversionFactor);
     // SmartDashboard.putNumber("Elevator vel", rel_encoder.getVelocity());

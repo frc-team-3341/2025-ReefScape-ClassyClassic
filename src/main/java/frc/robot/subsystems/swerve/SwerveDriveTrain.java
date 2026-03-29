@@ -36,6 +36,7 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -62,7 +63,7 @@ import frc.util.lib.SwerveUtil;
  */
 public class SwerveDriveTrain extends SubsystemBase {
 
-   private boolean fieldRelative = false;
+   private boolean fieldRelative = true;
 
    // Create Navx
    private AHRS navx = new AHRS(NavXComType.kMXP_SPI);
@@ -110,8 +111,7 @@ public class SwerveDriveTrain extends SubsystemBase {
     * 
     * @author Aric Volman
     */
-   public SwerveDriveTrain(Pose2d startingPose, SwerveModuleIOSparkMax FL, SwerveModuleIOSparkMax FR, SwerveModuleIOSparkMax BL, SwerveModuleIOSparkMax BR,
-                           Vision vision, DoubleSupplier leftTriggerVal) {
+   public SwerveDriveTrain(Pose2d startingPose, SwerveModuleIOSparkMax FL, SwerveModuleIOSparkMax FR, SwerveModuleIOSparkMax BL, SwerveModuleIOSparkMax BR, Vision vision) {
       // Assign modules to their object
       this.moduleIO = new SwerveModuleIOSparkMax[] { FL, FR, BL, BR};
 
@@ -219,7 +219,7 @@ public class SwerveDriveTrain extends SubsystemBase {
       this.field.setRobotPose(this.getPoseFromEstimator());
 
       // Update telemetry of each swerve module
-      // SwerveUtil.updateTelemetry(moduleIO);
+      SwerveUtil.updateTelemetry(moduleIO);
 
       // Draw poses of robot's modules in SmartDashboard
       SwerveUtil.drawModulePoses(modulePositions, field, getPoseFromEstimator());
@@ -229,9 +229,14 @@ public class SwerveDriveTrain extends SubsystemBase {
       SmartDashboard.putNumber("Robot Rotation", getPoseFromEstimator().getRotation().getDegrees());
       SmartDashboard.putNumber("Angle", getHeading());
 
+      
+
+ 
       SmartDashboard.putNumber("offsetNavx", offsetNavx.getDegrees());
       //SmartDashboard.putNumber("pose.getRotation()", pose.getRotation().getDegrees());
       SmartDashboard.putNumber("navx.getRotation2d", navx.getRotation2d().getDegrees());
+
+      SmartDashboard.putNumber("Match Time", Timer.getMatchTime());
 
       targetStatePublisher.set(getSetpointStates());
       statePublisher.set(getActualStates());
@@ -295,8 +300,9 @@ public class SwerveDriveTrain extends SubsystemBase {
     * @param isOpenLoop    Whether or not to control robot with closed or open loop
     *                      control
     */
-   public void drive(Translation2d translation, double rotation, boolean isOpenLoop) {
-
+    public void drive(Translation2d translation, double rotation, boolean isOpenLoop) {
+      //This question mark and colon are called ternary operators
+      //If field relative is true, then do the line with the ?, if false do :
       this.chassisSpeeds = fieldRelative
             ? ChassisSpeeds.fromFieldRelativeSpeeds(translation.getX(), translation.getY(), rotation,
                   this.getRotation())
@@ -350,6 +356,12 @@ public class SwerveDriveTrain extends SubsystemBase {
          moduleIO[i].setDriveVoltage(driveVoltage);
          moduleIO[i].setTurnVoltage(turnVoltage);
       }
+   }
+
+   public Command driveVoltages(double driveVoltage) {
+      return this.run(() -> {
+         setModuleVoltages(driveVoltage, 0);
+      });
    }
 
    /**
@@ -453,7 +465,7 @@ public class SwerveDriveTrain extends SubsystemBase {
    public void resetPose(Pose2d pose) {
       System.out.println("resetPose");
       poseEstimator.resetPosition(pose.getRotation(), modulePositions, pose);
-      offsetNavx = pose.getRotation().minus(navx.getRotation2d());
+      // offsetNavx = pose.getRotation().minus(navx.getRotation2d());
 
       if (Constants.isSim) {
          mapleSimDrive.setSimulationWorldPose(pose);

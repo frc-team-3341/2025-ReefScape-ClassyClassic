@@ -41,7 +41,6 @@ public class CoralManipulator extends SubsystemBase {
     //deg * (81/360) Dimensional analysis yay --> deg -> rotation conversion
     PIDController pidController = new PIDController(0.5, 0, 0);
 
-    public boolean probablyHasCoral = false;
     
 
     public CoralManipulator() {
@@ -144,7 +143,6 @@ public class CoralManipulator extends SubsystemBase {
         return this.runOnce(() -> {
             coralMotor1.set(0.2);
             coralMotor2.set(0.2);
-            probablyHasCoral = true;
         });
     }
 
@@ -152,7 +150,6 @@ public class CoralManipulator extends SubsystemBase {
         return this.runOnce(() -> {
             coralMotor1.set(-0.2);
             coralMotor2.set(-0.2);
-            probablyHasCoral = false;
         });
     }
 
@@ -174,10 +171,9 @@ public class CoralManipulator extends SubsystemBase {
         SmartDashboard.putBoolean("Pivot FWD Limit", this.FWDLimit.isPressed());
         SmartDashboard.putBoolean("Pivot REV Limit", this.REVLimit.isPressed());
         // SmartDashboard.putNumber("pivot voltage", this.pivotMotor.getBusVoltage() * this.pivotMotor.getAppliedOutput());
-        SmartDashboard.putBoolean("ProbablyHasCoral", probablyHasCoral);
     }
 
-    public Command toggleTeleop() {
+    public Command toggleTeleop() {  
         return this.runOnce(() -> {
             enableTeleop = !enableTeleop;
         });

@@ -106,7 +106,7 @@ public final class Constants {
         // In rotations
         public static final double drivingEncoderPositionFactor = (Math.PI * wheelDiameterMeters) / driveGearRatio;
         
-        // In RPM
+        //This is in m/s not RPM
         public static final double drivingEncoderVelocityPositionFactor = drivingEncoderPositionFactor / 60.0;
 
         //Rotations per steering rotation for the angle motor need to account for gear ratio
